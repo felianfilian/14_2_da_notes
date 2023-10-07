@@ -4,6 +4,7 @@ import {
   collection,
   collectionData,
   doc,
+  onSnapshot,
 } from '@angular/fire/firestore';
 import { Note } from '../interfaces/note.interface';
 import { Observable } from 'rxjs';
@@ -15,22 +16,48 @@ export class NoteListService {
   trashNotes: Note[] = [];
   normalNotes: Note[] = [];
 
-  items$;
-  items: any;
-
   firestore: Firestore = inject(Firestore);
 
+  unsubTrash;
+  unsubNotes;
+
   constructor() {
-    this.items$ = collectionData(this.getNotesRef());
-    this.items = this.items$.subscribe((list) => {
-      list.forEach((element) => {
-        console.log(element);
-      });
-    });
-    this.items.unsubscribe();
+    this.unsubTrash = this.subTrashList();
+    this.unsubNotes = this.subNotesList();
   }
 
-  // const itemCollection = collection(this.firestore, 'items');
+  subTrashList() {
+    return onSnapshot(this.getTrashRef(), (list) => {
+      this.trashNotes = [];
+      list.forEach((element) => {
+        this.trashNotes.push(this.setNoteObject(element.data(), element.id));
+      });
+    });
+  }
+
+  subNotesList() {
+    return onSnapshot(this.getNotesRef(), (list) => {
+      this.normalNotes = [];
+      list.forEach((element) => {
+        this.normalNotes.push(this.setNoteObject(element.data(), element.id));
+      });
+    });
+  }
+
+  setNoteObject(obj: any, id: string): Note {
+    return {
+      id: id,
+      type: obj.type || 'note',
+      titel: obj.title || '',
+      content: obj.content || '',
+      marked: obj.marked || false,
+    };
+  }
+
+  ngonDestroy() {
+    this.unsubTrash();
+    this.unsubNotes();
+  }
 
   getNotesRef() {
     return collection(this.firestore, 'notes');
