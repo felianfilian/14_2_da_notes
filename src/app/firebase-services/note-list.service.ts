@@ -4,6 +4,7 @@ import {
   addDoc,
   collection,
   collectionData,
+  deleteDoc,
   doc,
   onSnapshot,
   updateDoc,
@@ -26,6 +27,12 @@ export class NoteListService {
   constructor() {
     this.unsubTrash = this.subTrashList();
     this.unsubNotes = this.subNotesList();
+  }
+
+  async deleteNote(colId: string, docId: string) {
+    await deleteDoc(this.getSingleDocRef(colId, docId)).catch((err) => {
+      console.log(err);
+    });
   }
 
   async updateNote(note: Note) {
