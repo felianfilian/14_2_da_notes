@@ -22,15 +22,18 @@ import { Observable } from 'rxjs';
 export class NoteListService {
   trashNotes: Note[] = [];
   normalNotes: Note[] = [];
+  nomralMarkedNotes: Note[] = [];
 
   firestore: Firestore = inject(Firestore);
 
   unsubTrash;
   unsubNotes;
+  unsubMarkedNotes;
 
   constructor() {
     this.unsubTrash = this.subTrashList();
     this.unsubNotes = this.subNotesList();
+    this.unsubMarkedNotes = this.subMarkedNotesList();
   }
 
   async deleteNote(colId: 'notes' | 'trash', docId: string) {
@@ -87,11 +90,27 @@ export class NoteListService {
   }
 
   subNotesList() {
-    const q = query(this.getNotesRef(), orderBy('state'), limit(100));
+    const q = query(this.getNotesRef(), limit(100));
     return onSnapshot(q, (list) => {
       this.normalNotes = [];
       list.forEach((element) => {
         this.normalNotes.push(this.setNoteObject(element.data(), element.id));
+      });
+    });
+  }
+
+  subMarkedNotesList() {
+    const q = query(
+      this.getNotesRef(),
+      where('marked', '==', true),
+      limit(100)
+    );
+    return onSnapshot(q, (list) => {
+      this.nomralMarkedNotes = [];
+      list.forEach((element) => {
+        this.nomralMarkedNotes.push(
+          this.setNoteObject(element.data(), element.id)
+        );
       });
     });
   }
@@ -109,6 +128,7 @@ export class NoteListService {
   ngonDestroy() {
     this.unsubTrash();
     this.unsubNotes();
+    this.unsubMarkedNotes();
   }
 
   getNotesRef() {
