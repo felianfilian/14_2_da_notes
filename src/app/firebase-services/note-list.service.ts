@@ -6,8 +6,12 @@ import {
   collectionData,
   deleteDoc,
   doc,
+  limit,
   onSnapshot,
+  orderBy,
+  query,
   updateDoc,
+  where,
 } from '@angular/fire/firestore';
 import { Note } from '../interfaces/note.interface';
 import { Observable } from 'rxjs';
@@ -83,7 +87,8 @@ export class NoteListService {
   }
 
   subNotesList() {
-    return onSnapshot(this.getNotesRef(), (list) => {
+    const q = query(this.getNotesRef(), orderBy('state'), limit(100));
+    return onSnapshot(q, (list) => {
       this.normalNotes = [];
       list.forEach((element) => {
         this.normalNotes.push(this.setNoteObject(element.data(), element.id));
