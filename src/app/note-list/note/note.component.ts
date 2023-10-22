@@ -35,14 +35,27 @@ export class NoteComponent {
   }
 
   moveToTrash() {
-    this.note.type = 'trash';
+    if (this.note.id) {
+      this.note.type = 'trash';
+      let docId = this.note.id;
+      delete this.note.id;
+      this.noteService.addNote(this.note, 'trash');
+      this.noteService.deleteNote('notes', docId);
+    }
   }
 
   moveToNotes() {
     this.note.type = 'note';
   }
 
-  deleteNote() {}
+  deleteNote() {
+    if (this.note.id && this.note.type == 'note') {
+      this.noteService.deleteNote('notes', this.note.id);
+    }
+    if (this.note.id && this.note.type == 'trash') {
+      this.noteService.deleteNote('trash', this.note.id);
+    }
+  }
 
   saveNote() {
     this.noteService.updateNote(this.note);
